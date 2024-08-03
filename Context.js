@@ -7,12 +7,12 @@ import config from './Config';
  */
 const initialState = {
   loading: false,
-  token: '',
   error: '',
-  secure: '',
-  pwd: '',
-  clientId: '',
-  fundsView: {},
+  token: '',
+  userName: '',
+  firstName: '',
+  lastName: '',
+  clientId: ''
 };
 
 const MyContext = createContext(initialState);
@@ -28,12 +28,34 @@ export const Provider = ({children}) => {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'Origin': config.API_ORIGIN
         },
         body: JSON.stringify({
           username: auth.username,
           password: auth.password,
         }),
       });
+      const responseJson = await response.json();
+      return responseJson;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const agentCollectionRecord = async (agentId, date) => {
+    try {
+      const response = await fetch(
+        config.API_URL + 'mobile/agentcollectionrecord/list?agent=' + agentId + '&date=' + date,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'Origin': config.API_ORIGIN,
+            'Authorization': 'Bearer ' + state.token
+          },
+        },
+      );
       const responseJson = await response.json();
       return responseJson;
     } catch (error) {
@@ -295,6 +317,7 @@ export const Provider = ({children}) => {
         listRecipient,
         moneyTransfer,
         getPesonetBanklist,
+        agentCollectionRecord
       }}>
       {children}
     </MyContext.Provider>

@@ -81,30 +81,23 @@ export default function Table({
   } else {
     const renderItem = ({item}) => {
       return (
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('AccountView', {
-              name: profileHeaderTitle,
-              viewId: item[viewId],
-              type: type,
-              type1: type1,
-            })
-          }
-          activeOpacity={0.5}>
           <View style={styles.rowWrapper}>
             {dataKeys.map((key, index) => {
               const keyItem = Object.keys(key)[0];
               let keyValue = key[keyItem];
               const keyText = keyValue.text ? keyValue.text + ': ' : '';
               return (
-                <Text key={index} style={keyValue.style}>
-                  {keyText}
-                  {item[keyItem]}
-                </Text>
+                <View key={index} style={key.parentStyle}>
+                  <Text style={key.style}>
+                    {keyText}
+                    {key.formatter
+                    ? key.formatter(item[keyItem])
+                    : item[keyItem]}
+                  </Text>
+                </View>
               );
             })}
           </View>
-        </TouchableOpacity>
       );
     };
     flatListProps = {...flatListProps, renderItem: renderItem};
@@ -165,11 +158,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   rowWrapper: {
-    paddingTop: 10,
-    marginLeft: 10,
-    marginRight: 10,
-    paddingBottom: 10,
+    paddingTop: 5,
+    paddingBottom: 5,
     borderBottomColor: '#e6e6e6',
     borderBottomWidth: 1,
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
 });

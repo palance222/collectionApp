@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View, Image, ScrollView} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View, Image, ScrollView} from 'react-native';
 import Table from './Table';
 import {GenericStyles} from '../styles/Styles';
 import {Context as context} from '../../Context';
@@ -7,75 +7,67 @@ import {Context as context} from '../../Context';
 /**
  * Functional component variables
  */
-const Accounts = ({navigation}) => {
+const Accounts = ({navigation, route}) => {
   const auth = context();
-  const [accountsData, setAccounts] = useState({
-    loan: [],
-    deposit: [],
-    loanLoading: false,
-    depositLoadng: false,
-    clientDetails: '',
+  const [collectionAgent, setAgentCollection] = useState({
+    agentCollection: [],
+    loading: false,
   });
-  const loanColumns = [
-    {loanNumber: {text: '', style: {fontSize: 16, fontWeight: 'bold'}}},
-    {principalBalance: {text: 'Loan Balance'}, style: {fontSize: 16}},
-    {productName: {text: ''}, style: {fontSize: 16}},
-  ];
-  const depositColumns = [
-    {accountNumber: {text: '', style: {fontSize: 16, fontWeight: 'bold'}}},
-    {availableBalance: {text: 'Available Balance'}, style: {fontSize: 16}},
-    {productName: {text: ''}, style: {fontSize: 16}},
+
+  const [query, setQuery] = useState('');
+  
+  const dateFormatter = () => {
+    const date = new Date();
+    const month = date.toLocaleString('default', {month: 'numeric'});
+    const day = date.toLocaleString('default', {day: 'numeric'});
+    const year = date.toLocaleString('default', {year: 'numeric'});
+    return year + '-' + (month > 9 ? month : ('0' + month)) + '-' + (day > 9 ? day : ('0' + day));
+  };
+
+  let agentDate = (route.params && route.params.dateValue) || dateFormatter()
+  
+  const columns = [
+    {
+      scheduledPaymentPrincipal: {text: 'Principal'}, 
+      parentStyle: {flex: 1, padding: 1},
+      style: {fontSize: 16, fontWeight: 'bold'}
+    },
+    {
+      scheduleDate: {text: ''}, 
+      parentStyle: {flex: 1, padding: 1, alignItems: 'flex-end'}, 
+      style: {fontSize: 14},
+      formatter: dateFormatter
+    },
+    {
+      term: {text: 'Term'}, 
+      parentStyle: {flex: 1, flexBasis: '100%'},
+      style: {fontSize: 14}
+    }
   ];
   useEffect(() => {
-    auth.findClient(auth.state.clientId).then(data => {
+    setAgentCollection(prevState => ({
+      ...prevState,
+      loading: true,
+      agentCollection: []
+    }));
+    auth.agentCollectionRecord(auth.state.clientId, agentDate).then(data => {
       if (data.status === 'success') {
-        setAccounts(prevState => ({
+        setAgentCollection(prevState => ({
           ...prevState,
-          clientDetails: data.client,
+          agentCollection: data.code ? [] : data.data,
+          loading: false
         }));
       }
     });
-  }, []);
-  useEffect(() => {
-    setAccounts(prevState => ({
-      ...prevState,
-      loanLoading: true,
-    }));
-    auth.listAccounts('loan', auth.state.clientId).then(data => {
-      if (data.loans.length) {
-        setAccounts(prevState => ({
-          ...prevState,
-          loan: data.loans,
-          loanLoading: false,
-        }));
-      } else {
-        setAccounts(prevState => ({
-          ...prevState,
-          loanLoading: false,
-        }));
-      }
-    });
-  }, []);
-  useEffect(() => {
-    setAccounts(prevState => ({
-      ...prevState,
-      depositLoading: true,
-    }));
-    auth.listAccounts('deposit', auth.state.clientId).then(data => {
-      if (data.accounts.length) {
-        setAccounts(prevState => ({
-          ...prevState,
-          deposit: data.accounts,
-          depositLoading: false,
-        }));
-      } else {
-        setAccounts(prevState => ({
-          ...prevState,
-          depositLoading: false,
-        }));
-      }
-    });
-  }, []);
+  }, [route]);
+
+  const handleDate = () => {
+    navigation.navigate('DatePicker', {'dateValue': agentDate});
+  };
+
+
+  const name = (auth.state.firstName || '') + ' ' + (auth.state.lastName || '')
+  
   return (
     <ScrollView nestedScrollEnabled={true} style={styles.scrollView}>
       <View style={GenericStyles.container}>
@@ -90,9 +82,9 @@ const Accounts = ({navigation}) => {
             <View>
               <Text style={styles.accountTitle}>Welcome to Collection Bank</Text>
               <Text style={styles.accountDesc}>
-                <Text style={styles.fontBold}>Account:</Text>
+                <Text style={styles.fontBold}>Agent Name:</Text>
                 <Text style={styles.textUpper}>
-                  {auth.state.userName ? ' ' + auth.state.userName : ''}
+                  {name}
                 </Text>
               </Text>
             </View>
@@ -100,37 +92,30 @@ const Accounts = ({navigation}) => {
         </View>
         <View>
           <>
-            <Text style={styles.subTitle}>Loan Accounts</Text>
+            <TouchableOpacity onPress={handleDate} style={styles.dateTouchable} elevation={2} activeOpacity={0.5}>
+              <View style={styles.dateContainer}>
+                <View style={styles.dateLogo}>
+                  <Image
+                    style={styles.logoImage}
+                    source={require('../../assets/calendar.jpg')}
+                  />
+                </View>
+                <View style={styles.calenderText}><Text style={styles.agentDate}>{agentDate}</Text></View>
+              </View>
+            </TouchableOpacity>
+            <Text style={styles.subTitle}>Agent Collection List</Text>
             <View style={styles.wrapper} elevation={1}>
               <Table
                 navigation={navigation}
                 style={styles.tableData}
-                loading={accountsData.loanLoading}
+                loading={collectionAgent.loading}
                 headerView={false}
-                data={accountsData.loan}
-                dataKeys={loanColumns}
+                data={collectionAgent.agentCollection}
+                dataKeys={columns}
                 type="loan"
                 type1="payments"
                 viewId={'id'}
                 profileHeaderTitle={'Loan Details'}
-              />
-            </View>
-          </>
-        </View>
-        <View>
-          <>
-            <Text style={styles.subTitle}>Deposit Accounts</Text>
-            <View style={styles.wrapper} elevation={1}>
-              <Table
-                navigation={navigation}
-                headerView={false}
-                loading={accountsData.depositLoading}
-                data={accountsData.deposit}
-                dataKeys={depositColumns}
-                type="deposit"
-                type1="transactions"
-                viewId={'accountId'}
-                profileHeaderTitle={'Deposit Details'}
               />
             </View>
           </>
@@ -148,6 +133,22 @@ export default Accounts;
 const styles = StyleSheet.create({
   scrollView: {
     flexGrow: 1,
+  },
+  searchIcon: {
+    position: 'absolute',
+    top: 12,
+    left: 5,
+  },
+  dateTouchable: {
+    marginTop: 15
+  },
+  calenderText: {
+    marginTop: 5,
+    marginLeft: 10,
+  },
+  agentDate: {
+    color: '#000',
+    fontSize: 16
   },
   accountProfile: {
     paddingTop: 10,
@@ -167,6 +168,18 @@ const styles = StyleSheet.create({
       height: 1,
       width: 1,
     },
+  },
+  dateContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    borderRadius: 5,
+    paddingTop: 5,
+    paddingBottom: 5,
+    paddingStart: 5,
+    borderWidth: 1,
+    borderColor: '#d6d6d6',
+    backgroundColor: '#e9ecef',
   },
   accountContainer: {
     flex: 1,
@@ -210,7 +223,7 @@ const styles = StyleSheet.create({
     borderBottomEndRadius: 0,
     borderBottomStartRadius: 0,
     padding: 10,
-    paddingLeft: 20,
+    paddingLeft: 15,
     marginTop: 20,
     color: '#fff',
     borderWidth: 1,
@@ -218,7 +231,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#01403c',
   },
   logo: {
-    justifyContent: 'center'
+    justifyContent: 'center',
+  },
+  dateLogo: {
+    justifyContent: 'center',
+    marginLeft: 6
   },
   logoImage: {
     height: 30,

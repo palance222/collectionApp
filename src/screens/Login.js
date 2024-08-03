@@ -15,7 +15,7 @@ import {GenericStyles} from '../styles/Styles';
 import {Context as context} from '../../Context';
 import Loader from './Loader';
 
-export default function Login({navigation}) {
+export default function Login({navigation, onVerification}) {
   const auth = context();
   const [login, setLogin] = useState({
     username: '',
@@ -38,20 +38,20 @@ export default function Login({navigation}) {
       loading: true,
     }));
     auth.saveToken(login).then(data => {
-      if (data && data.status === 'mfa') {
+      if (data && data.status === 'success') {
         auth.setState(prevState => ({
           ...prevState,
           error: '',
           success: '',
           loading: false,
-          secure: {
-            hash: data.hash,
-            session: data.session,
-            username: login.username,
-          },
-          pwd: login.password,
+          token: data.user.token,
+          userName: data.user.userName,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          clientId: data.user.id
         }));
-        navigation.navigate('Verification');
+        onVerification(data.user.id);
+        navigation.navigate('Agents');
       } else {
         auth.setState(prevState => ({
           ...prevState,

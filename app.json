@@ -1,6 +1,6 @@
 {
-  "name": "Collection",
-  "displayName": "Collection",
+  "name": "collection",
+  "displayName": "collection",
   "android": {
     "adaptiveIcon": {
       "foregroundImage": "./assets/icon.png",
