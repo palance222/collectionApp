@@ -81,23 +81,32 @@ export default function Table({
   } else {
     const renderItem = ({item}) => {
       return (
-          <View style={styles.rowWrapper}>
-            {dataKeys.map((key, index) => {
-              const keyItem = Object.keys(key)[0];
-              let keyValue = key[keyItem];
-              const keyText = keyValue.text ? keyValue.text + ': ' : '';
-              return (
-                <View key={index} style={key.parentStyle}>
-                  <Text style={key.style}>
-                    {keyText}
-                    {key.formatter
-                    ? key.formatter(item[keyItem])
-                    : item[keyItem]}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('AccountView', {
+              name: profileHeaderTitle,
+              details: item
+            })
+          }
+          activeOpacity={0.5}>
+            <View style={styles.rowWrapper}>
+              {dataKeys.map((key, index) => {
+                const keyItem = Object.keys(key)[0];
+                let keyValue = key[keyItem];
+                const keyText = keyValue.text ? keyValue.text + ': ' : '';
+                return (
+                  <View key={index} style={key.parentStyle}>
+                    <Text style={key.style}>
+                      {keyText}
+                      {key.formatter
+                      ? key.formatter(item[keyItem])
+                      : item[keyItem]}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </TouchableOpacity>
       );
     };
     flatListProps = {...flatListProps, renderItem: renderItem};

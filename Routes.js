@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Login from './src/screens/Login';
 import Accounts from './src/screens/Accounts';
+import AccountView from './src/screens/AccountsView';
 import DatePicker from './src/screens/DatePicker';
 import {Context as context} from './Context';
 
@@ -50,6 +51,22 @@ const MyRoutes = () => {
                   </TouchableOpacity>
                 ),
               }}
+            />
+            <Stack.Screen
+              name="AccountView"
+              component={AccountView}
+              options={({route}) => ({
+                title: route.params.name,
+                headerTintColor: '#fff',
+                headerStyle: {
+                  backgroundColor: '#01403c',
+                },
+                headerRight: () => (
+                  <TouchableOpacity onPress={showConfirmDialog}>
+                    <Image source={require('./assets/logout-1.png')} />
+                  </TouchableOpacity>
+                ),
+              })}
             />
             <Stack.Screen
               name="DatePicker"

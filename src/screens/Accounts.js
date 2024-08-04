@@ -115,7 +115,7 @@ const Accounts = ({navigation, route}) => {
                 type="loan"
                 type1="payments"
                 viewId={'id'}
-                profileHeaderTitle={'Loan Details'}
+                profileHeaderTitle={'Agent Details'}
               />
             </View>
           </>
